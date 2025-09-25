@@ -138,10 +138,12 @@ async function initGoogle() {
     
     // Check if GOOGLE_KEYFILE is a JSON string (for Render) or file path (for local)
     if (GOOGLE_KEYFILE.startsWith('{')) {
-      // It's a JSON string (Render environment)
+      // It's a JSON string (Render environment) - write to temp file
       const credentials = JSON.parse(GOOGLE_KEYFILE);
+      const tempKeyFile = '/tmp/google-credentials.json';
+      fs.writeFileSync(tempKeyFile, JSON.stringify(credentials));
       authConfig = {
-        credentials,
+        keyFile: tempKeyFile,
         scopes: [
           'https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/calendar',
@@ -237,10 +239,12 @@ async function createCalendarEvent(payload) {
     
     // Check if GOOGLE_KEYFILE is a JSON string (for Render) or file path (for local)
     if (GOOGLE_KEYFILE.startsWith('{')) {
-      // It's a JSON string (Render environment)
+      // It's a JSON string (Render environment) - write to temp file
       const credentials = JSON.parse(GOOGLE_KEYFILE);
+      const tempKeyFile = '/tmp/google-credentials-calendar.json';
+      fs.writeFileSync(tempKeyFile, JSON.stringify(credentials));
       authConfig = {
-        credentials,
+        keyFile: tempKeyFile,
         scopes: [
           'https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/calendar',
@@ -868,10 +872,12 @@ app.get('/api/freebusy', async (req, res, next) => {
     
     // Check if GOOGLE_KEYFILE is a JSON string (for Render) or file path (for local)
     if (GOOGLE_KEYFILE.startsWith('{')) {
-      // It's a JSON string (Render environment)
+      // It's a JSON string (Render environment) - write to temp file
       const credentials = JSON.parse(GOOGLE_KEYFILE);
+      const tempKeyFile = '/tmp/google-credentials-freebusy.json';
+      fs.writeFileSync(tempKeyFile, JSON.stringify(credentials));
       authConfig = {
-        credentials,
+        keyFile: tempKeyFile,
         scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
       };
     } else {
