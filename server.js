@@ -134,14 +134,33 @@ async function initGoogle() {
     if (!subject) throw new Error('GSUITE_IMPERSONATE_USER not set');
 
     // ⬇️ key change: use JWT + subject (impersonation), not GoogleAuth
-    const auth = new google.auth.JWT({
-      keyFile: GOOGLE_KEYFILE,
-      scopes: [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/calendar',
-      ],
-      subject, // act as this real Workspace user
-    });
+    let authConfig;
+    
+    // Check if GOOGLE_KEYFILE is a JSON string (for Render) or file path (for local)
+    if (GOOGLE_KEYFILE.startsWith('{')) {
+      // It's a JSON string (Render environment)
+      const credentials = JSON.parse(GOOGLE_KEYFILE);
+      authConfig = {
+        credentials,
+        scopes: [
+          'https://www.googleapis.com/auth/spreadsheets',
+          'https://www.googleapis.com/auth/calendar',
+        ],
+        subject, // act as this real Workspace user
+      };
+    } else {
+      // It's a file path (local environment)
+      authConfig = {
+        keyFile: GOOGLE_KEYFILE,
+        scopes: [
+          'https://www.googleapis.com/auth/spreadsheets',
+          'https://www.googleapis.com/auth/calendar',
+        ],
+        subject, // act as this real Workspace user
+      };
+    }
+    
+    const auth = new google.auth.JWT(authConfig);
 
     await auth.authorize(); // verify now
 
@@ -214,14 +233,33 @@ async function createCalendarEvent(payload) {
     if (!cisEmail) throw new Error('cisEmail is required for impersonation');
   
     // Create dynamic auth for this specific CIS user
-    const auth = new google.auth.GoogleAuth({
-      keyFile: GOOGLE_KEYFILE,
-      scopes: [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/calendar',
-      ],
-      clientOptions: { subject: cisEmail }, // impersonate THIS user only
-    });
+    let authConfig;
+    
+    // Check if GOOGLE_KEYFILE is a JSON string (for Render) or file path (for local)
+    if (GOOGLE_KEYFILE.startsWith('{')) {
+      // It's a JSON string (Render environment)
+      const credentials = JSON.parse(GOOGLE_KEYFILE);
+      authConfig = {
+        credentials,
+        scopes: [
+          'https://www.googleapis.com/auth/spreadsheets',
+          'https://www.googleapis.com/auth/calendar',
+        ],
+        clientOptions: { subject: cisEmail }, // impersonate THIS user only
+      };
+    } else {
+      // It's a file path (local environment)
+      authConfig = {
+        keyFile: GOOGLE_KEYFILE,
+        scopes: [
+          'https://www.googleapis.com/auth/spreadsheets',
+          'https://www.googleapis.com/auth/calendar',
+        ],
+        clientOptions: { subject: cisEmail }, // impersonate THIS user only
+      };
+    }
+    
+    const auth = new google.auth.GoogleAuth(authConfig);
 
     // Create calendar client with dynamic auth
     const dynamicCalendarClient = google.calendar({ version: 'v3', auth });
@@ -826,11 +864,25 @@ app.get('/api/freebusy', async (req, res, next) => {
     }
 
     // Auth with service account without impersonation
-    const auth = new google.auth.GoogleAuth({
-      keyFile: GOOGLE_KEYFILE,
-      scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-      // remove clientOptions.subject here
-    });
+    let authConfig;
+    
+    // Check if GOOGLE_KEYFILE is a JSON string (for Render) or file path (for local)
+    if (GOOGLE_KEYFILE.startsWith('{')) {
+      // It's a JSON string (Render environment)
+      const credentials = JSON.parse(GOOGLE_KEYFILE);
+      authConfig = {
+        credentials,
+        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+      };
+    } else {
+      // It's a file path (local environment)
+      authConfig = {
+        keyFile: GOOGLE_KEYFILE,
+        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+      };
+    }
+    
+    const auth = new google.auth.GoogleAuth(authConfig);
     const client = await auth.getClient();
     const calendar = google.calendar({ version: 'v3', auth: client });
 
