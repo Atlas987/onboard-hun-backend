@@ -49,6 +49,27 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, env: NODE_ENV });
 });
 
+// Root route
+app.get('/', (_req, res) => {
+  res.json({ 
+    message: 'Onboarding Hub Backend API', 
+    version: '1.0.0',
+    status: 'running',
+    endpoints: [
+      'GET /health',
+      'GET /api/onboarding',
+      'POST /api/onboarding',
+      'GET /api/bookings',
+      'POST /api/bookings',
+      'GET /api/freebusy',
+      'GET /api/onboarding/cis/:cisId',
+      'PATCH /api/onboarding/:id/status',
+      'POST /api/onboarding/:id/attachment',
+      'PATCH /api/onboarding/:id'
+    ]
+  });
+});
+
 // 6) MongoDB connect
 const MONGO_URL = process.env.MONGO_URL;
 const DB_NAME = process.env.DB_NAME || 'test';
